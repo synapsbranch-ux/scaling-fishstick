@@ -33,3 +33,4 @@ function App() {
 }
 
 export default App
+// TODO: Remplacer l’écran Vite par une section Coming Soon (Phase 1b)
