@@ -1,7 +1,6 @@
 // src/lib/api.ts
 // ----------------------------------------------------
-// Mock API client for waitlist submissions
-// Simulates latency and mimics future REST signature
+// Waitlist API types + clients (real + mock for DEV)
 // ----------------------------------------------------
 
 import { validateEmail, normalizeEmail } from "./validators";
@@ -13,35 +12,40 @@ export interface WaitlistPayload {
   referer?: string;
 }
 
-/**
- * Mock POST /waitlist
- * Simulates latency (500–700 ms)
- * Returns { ok: true } for valid email
- * Throws error object { ok:false, status:400 } if invalid
- */
+// ---- Real REST call (Amplify API Gateway) ----
+export async function postWaitlist(
+  payload: WaitlistPayload
+): Promise<{ ok: true }> {
+  const base = import.meta.env.VITE_API_BASE_URL?.replace(/\/+$/, "") || "";
+  const res = await fetch(`${base}/waitlist`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload),
+  });
+  if (!res.ok) {
+    const text = await res.text().catch(() => "");
+    throw { ok: false, status: res.status, message: text || "Request failed" };
+  }
+  return { ok: true };
+}
+
+// ---- Optional mock (handy for local UI dev) ----
 export async function postWaitlistMock(
   payload: WaitlistPayload
 ): Promise<{ ok: true }> {
-  // simulate network latency between 500–700 ms
   const delay = 500 + Math.random() * 200;
-  await new Promise((resolve) => setTimeout(resolve, delay));
+  await new Promise((r) => setTimeout(r, delay));
 
-  // validate defensively
   if (!validateEmail(payload.email)) {
     throw { ok: false, status: 400, message: "Invalid email" };
   }
 
-  // normalize email before returning success (for consistency)
-  const normalizedEmail = normalizeEmail(payload.email);
-
-  // log to dev console for debugging
   if (import.meta.env.DEV) {
     console.log("📩 Mock waitlist submission:", {
       ...payload,
-      email: normalizedEmail,
+      email: normalizeEmail(payload.email),
       simulatedDelay: Math.round(delay),
     });
   }
-
   return { ok: true };
 }

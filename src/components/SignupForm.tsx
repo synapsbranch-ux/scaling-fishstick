@@ -1,6 +1,6 @@
 // src/components/SignupForm.tsx
 import React, { useEffect, useRef, useState } from "react";
-import { postWaitlistMock, type WaitlistPayload } from "../lib/api";
+import { postWaitlist, type WaitlistPayload } from "../lib/api";
 import { validateEmail, validateName } from "../lib/validators";
 
 type Props = {
@@ -75,7 +75,7 @@ export default function SignupForm({ onSuccess }: Props) {
         referer: refererRef.current,
       };
 
-      await postWaitlistMock(payload);
+      await postWaitlist(payload);
 
       // Clear field-level errors on success
       setErrors({});
