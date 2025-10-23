@@ -1,69 +1,40 @@
-:root {
-  font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
-  line-height: 1.5;
-  font-weight: 400;
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 
-  color-scheme: light dark;
-  color: rgba(255, 255, 255, 0.87);
-  background-color: #242424;
+/* === Base Styling — Coming Soon Shell === */
 
-  font-synthesis: none;
-  text-rendering: optimizeLegibility;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-}
-
-a {
-  font-weight: 500;
-  color: #646cff;
-  text-decoration: inherit;
-}
-a:hover {
-  color: #535bf2;
+/* Typographie & rendu global */
+html {
+  scroll-behavior: smooth;
 }
 
 body {
-  margin: 0;
-  display: flex;
-  place-items: center;
-  min-width: 320px;
-  min-height: 100vh;
+  @apply antialiased bg-zinc-50 text-zinc-900 min-h-screen flex flex-col items-center justify-center px-4 sm:px-6;
+  font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
 }
 
-h1 {
-  font-size: 3.2em;
-  line-height: 1.1;
+/* Sélection de texte élégante */
+::selection {
+  @apply bg-zinc-900 text-white;
 }
 
-button {
-  border-radius: 8px;
-  border: 1px solid transparent;
-  padding: 0.6em 1.2em;
-  font-size: 1em;
-  font-weight: 500;
-  font-family: inherit;
-  background-color: #1a1a1a;
-  cursor: pointer;
-  transition: border-color 0.25s;
-}
-button:hover {
-  border-color: #646cff;
-}
-button:focus,
-button:focus-visible {
-  outline: 4px auto -webkit-focus-ring-color;
+/* Transitions douces pour tous les éléments interactifs */
+* {
+  @apply transition-colors duration-200 ease-in-out;
 }
 
-@media (prefers-color-scheme: light) {
-  :root {
-    color: #213547;
-    background-color: #ffffff;
-  }
-  a:hover {
-    color: #747bff;
-  }
-  button {
-    background-color: #f9f9f9;
-  }
+/* Lien par défaut (pas encore utilisé, mais prêt) */
+a {
+  @apply text-zinc-900 hover:text-zinc-600 underline-offset-4;
 }
-/* TODO: base CSS (import Tailwind directives déjà présentes) */
+
+/* Footer / petits textes */
+footer {
+  @apply text-xs text-zinc-400 mt-8;
+}
+
+/* Placeholder du Coming Soon card */
+.coming-soon-card {
+  @apply bg-white shadow-lg rounded-2xl max-w-xl w-full text-center p-8 sm:p-10;
+}
