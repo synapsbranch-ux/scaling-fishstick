@@ -1,8 +1,12 @@
 // src/components/Hero.tsx
+import React, { useState } from "react";
 import Countdown from "./Countdown";
+import SignupForm from "./SignupForm";
+import CongratsModal from "./CongratsModal";
 
 const Hero = () => {
   const year = new Date().getFullYear();
+  const [modalOpen, setModalOpen] = useState(false);
 
   return (
     <main className="w-full">
@@ -26,9 +30,17 @@ const Hero = () => {
         {/* Countdown dynamique */}
         <Countdown />
 
-        <p className="mt-6 text-sm text-zinc-500">
-          Join the waitlist — coming next step.
-        </p>
+        {/* Signup form */}
+        <div className="mt-8">
+          <SignupForm onSuccess={() => setModalOpen(true)} />
+        </div>
+
+        {/* Modal de félicitations */}
+        <CongratsModal
+          open={modalOpen}
+          onClose={() => setModalOpen(false)}
+          followHref="https://x.com/yourhandle" // 🔗 remplace par ton lien Twitter/X
+        />
       </section>
 
       <footer className="mt-8 text-center text-xs text-zinc-400">
