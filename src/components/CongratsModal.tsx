@@ -1,5 +1,5 @@
 // src/components/CongratsModal.tsx
-import React, { useEffect, useRef } from "react";
+import  { useEffect, useRef } from "react";
 
 type Props = {
   open: boolean;

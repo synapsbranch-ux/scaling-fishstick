@@ -1,5 +1,5 @@
 // src/components/Hero.tsx
-import React, { useState } from "react";
+import  { useState } from "react";
 import Countdown from "./Countdown";
 import SignupForm from "./SignupForm";
 import CongratsModal from "./CongratsModal";
