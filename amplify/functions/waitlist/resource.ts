@@ -1,5 +1,5 @@
 // amplify/functions/waitlist/resource.ts
-import { defineFunction, secret } from "@aws-amplify/backend"; // <-- bon import
+import { defineFunction, secret } from "@aws-amplify/backend";
 
 export const waitlist = defineFunction({
   name: "waitlist",
@@ -8,8 +8,7 @@ export const waitlist = defineFunction({
   memoryMB: 256,
   timeoutSeconds: 20,
   environment: {
-    EMAIL_FROM: process.env.EMAIL_FROM,
-    WAITLIST_TABLE_NAME: process.env.WAITLIST_TABLE_NAME,
+    // Garder uniquement les secrets ici
     RESEND_API_KEY: secret("RESEND_API_KEY"),
     HASH_SALT: secret("HASH_SALT"),
   },

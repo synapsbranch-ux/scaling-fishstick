@@ -57,5 +57,9 @@ const table = new dynamodb.Table(dataStack, "WaitlistSignups", {
 // Grant the Lambda write permissions
 table.grantWriteData(backend.waitlist.resources.lambda);
 
-// Inject the resolved table name into the function env
+// Inject environment variables
+// NOTE: Ensure these are defined in your Amplify/CI environment.
+backend.waitlist.addEnvironment("EMAIL_FROM", process.env.EMAIL_FROM!);
 backend.waitlist.addEnvironment("WAITLIST_TABLE_NAME", table.tableName);
+
+export default backend;

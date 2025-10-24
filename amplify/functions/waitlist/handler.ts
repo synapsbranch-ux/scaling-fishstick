@@ -1,13 +1,19 @@
+// amplify/functions/waitlist/handler.ts
 import type { APIGatewayProxyHandler } from "aws-lambda";
 import { DynamoDBClient, PutItemCommand } from "@aws-sdk/client-dynamodb";
-import crypto from "crypto";
+import { createHash } from "node:crypto";
 
-const {
-  WAITLIST_TABLE_NAME = "",
-  EMAIL_FROM = "",
-  RESEND_API_KEY = "",
-  HASH_SALT = "",
-} = process.env;
+// Ces variables sont injectées via backend.addEnvironment(...) (non-secrets)
+// et via secret("...") pour les secrets.
+const EMAIL_FROM = process.env.EMAIL_FROM!;
+const WAITLIST_TABLE_NAME = process.env.WAITLIST_TABLE_NAME!;
+const RESEND_API_KEY = process.env.RESEND_API_KEY!;
+const HASH_SALT = process.env.HASH_SALT!;
+
+// (Optionnel) Garde-fou runtime si l'env est mal câblé :
+if (!EMAIL_FROM || !WAITLIST_TABLE_NAME || !RESEND_API_KEY || !HASH_SALT) {
+  console.error("Missing required environment variables for waitlist handler.");
+}
 
 const ddb = new DynamoDBClient({});
 const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -16,14 +22,14 @@ function normalizeEmail(email: string) {
   return email.trim().toLowerCase();
 }
 function hashIp(ip: string, salt: string) {
-  const h = crypto.createHash("sha256");
+  const h = createHash("sha256");
   h.update(`${salt}:${ip}`);
   return h.digest("hex");
 }
 
 export const handler: APIGatewayProxyHandler = async (event) => {
   const cors = {
-    "Access-Control-Allow-Origin": "*", // tighten to your domain later
+    "Access-Control-Allow-Origin": "*", // restreindre plus tard à ton domaine
     "Access-Control-Allow-Headers": "*",
     "Access-Control-Allow-Methods": "OPTIONS,POST",
   };
@@ -38,6 +44,7 @@ export const handler: APIGatewayProxyHandler = async (event) => {
     if (!event.body) {
       return { statusCode: 400, headers: cors, body: "Missing body" };
     }
+
     const nowIso = new Date().toISOString();
     const body = JSON.parse(event.body || "{}") as {
       name?: string;
@@ -56,11 +63,15 @@ export const handler: APIGatewayProxyHandler = async (event) => {
     }
 
     // IP / UA
+    const xfwd = event.headers?.["x-forwarded-for"] ?? event.headers?.["X-Forwarded-For"];
     const sourceIp =
-      (event.requestContext.identity as any)?.sourceIp ||
-      event.headers["x-forwarded-for"]?.split(",")[0]?.trim() ||
+      (event.requestContext as any)?.identity?.sourceIp ||
+      (typeof xfwd === "string" ? xfwd.split(",")[0]?.trim() : undefined) ||
       "0.0.0.0";
-    const userAgent = event.headers["user-agent"] || "";
+    const userAgent =
+      event.headers?.["user-agent"] ??
+      event.headers?.["User-Agent"] ??
+      "";
     const ipHash = hashIp(sourceIp, HASH_SALT);
 
     // DynamoDB item
@@ -82,7 +93,7 @@ export const handler: APIGatewayProxyHandler = async (event) => {
       updated_at: { S: nowIso },
     };
 
-    // Write idempotently (do not overwrite)
+    // Écriture idempotente (n'écrase pas si déjà présent)
     await ddb
       .send(
         new PutItemCommand({
@@ -95,7 +106,7 @@ export const handler: APIGatewayProxyHandler = async (event) => {
         if ((err as any)?.name !== "ConditionalCheckFailedException") throw err;
       });
 
-    // Email via Resend (Node 18+ has fetch)
+    // Email via Resend (Node 20 inclut fetch)
     const html = `
       <div style="font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif;">
         <h2 style="margin:0 0 8px;">Merci pour votre curiosité 💌</h2>
@@ -120,7 +131,7 @@ export const handler: APIGatewayProxyHandler = async (event) => {
     });
     if (!emailResp.ok) {
       console.error("Resend error", await emailResp.text());
-      // still return success; flip to 500 if you prefer strict email delivery
+      // on renvoie quand même 200; change en 500 si tu veux strict
     }
 
     return {
